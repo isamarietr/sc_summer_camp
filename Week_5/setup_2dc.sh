@@ -76,7 +76,7 @@ echo $MDB_URI
 echo "Initiating RS..."
 # mongosh $ip1 --eval 'use admin; db.createUser({user: "adminUser", pwd: "PASSWORD123", roles: [{role: "userAdminAnyDatabase", db: "admin"}, "readWriteAnyDatabase"]})'
 INIT_CMD="rs.initiate({_id: 'rs0', members: [{ _id: 0, host: '$ip1:27017' },{ _id: 1, host: '$ip2:27017' },{ _id: 2, host: '$ip3:27017' },{ _id: 3, host: '$ip4:27017' },{ _id: 4, host: '$ip5:27017'},{ _id: 5, host: '$ip6:27017', priority: 0, hidden: true }]})"
-mongosh  $MDB_URI --eval  $INIT_CMD 
+mongosh  $ip1 --eval  $INIT_CMD 
 
 echo "Getting status.."
 mongosh  $MDB_URI --eval  "rs.status()"
