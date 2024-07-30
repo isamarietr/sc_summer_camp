@@ -1,0 +1,2 @@
+Init: rs.initiate({_id: 'rs0', members: [{ _id: 0, host: '192.168.1.66:27017' },{ _id: 1, host: '192.168.1.67:27017' },{ _id: 2, host: '192.168.1.68:27017' },{ _id: 3, host: '192.168.1.69:27017' },{ _id: 4, host: '192.168.1.70:27017'},{ _id: 5, host: '192.168.1.71:27017', priority: 0, hidden: true }]})
+Reconfig: var cfg = rs.conf(); cfg.members = [{ _id: 3, host: '192.168.1.69:27017' },{ _id: 4, host: '192.168.1.70:27017'},{ _id: 5, host: '192.168.1.71:27017'}]; rs.reconfig(cfg, { force: true });
