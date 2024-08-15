@@ -1,0 +1,26 @@
+# Run rs from pre-built mongo image
+docker network create mongoCluster
+docker run --rm -p 27017:27017 --name mongo1 --network mongoCluster -d mongodb/mongodb-enterprise-server:latest mongod --replSet myReplicaSet --bind_ip localhost,mongo1
+docker run --rm -p 27018:27017 --name mongo2 --network mongoCluster -d mongodb/mongodb-enterprise-server:latest mongod --replSet myReplicaSet --bind_ip localhost,mongo2
+docker run --rm -p 27019:27017 --name mongo3 --network mongoCluster -d mongodb/mongodb-enterprise-server:latest mongod --replSet myReplicaSet --bind_ip localhost,mongo3
+docker exec -it mongo1 mongosh --eval "rs.initiate({_id: \"myReplicaSet\",members: [   {_id: 0, host: \"mongo1\"},   {_id: 1, host: \"mongo2\"},   {_id: 2, host: \"mongo3\"} ]})"
+
+
+# Create a new image
+docker build -t my-mongodb-enterprise:latest .
+
+# Run a container on my image
+# -v is optional, only if you want to provide a name, otherwise it will be gnerated by docker
+docker run -d -p 27017:27017 --name mongo1 --network mongoCluster -v mongo1_data:/data/db my-mongodb-enterprise:latest
+docker run -d -p 27018:27017 --name mongo2 --network mongoCluster -v mongo2_data:/data/db my-mongodb-enterprise:latest
+docker run -d -p 27019:27017 --name mongo3 --network mongoCluster -v mongo3_data:/data/db my-mongodb-enterprise:latest
+docker exec -it mongo1 mongosh --eval "rs.initiate({_id: \"rs0\",members: [   {_id: 0, host: \"mongo1\"},   {_id: 1, host: \"mongo2\"},   {_id: 2, host: \"mongo3\"} ]})"
+docker exec -it mongo1 mongosh
+
+# Run a container on my image
+# -v to provide config file at runtime
+docker run -d -p 27017:27017 --name mongo1 --network mongoCluster -v mongo1_data:/data/db -v /Users/isa.torres/2024_SC_Summer_Camp/Week_7/mongod.conf:/etc/mongod.conf my-mongodb-enterprise:latest
+docker run -d -p 27018:27017 --name mongo2 --network mongoCluster -v mongo2_data:/data/db -v /Users/isa.torres/2024_SC_Summer_Camp/Week_7/mongod.conf:/etc/mongod.conf my-mongodb-enterprise:latest
+docker run -d -p 27019:27017 --name mongo3 --network mongoCluster -v mongo3_data:/data/db -v /Users/isa.torres/2024_SC_Summer_Camp/Week_7/mongod.conf:/etc/mongod.conf my-mongodb-enterprise:latest
+docker exec -it mongo1 mongosh --eval "rs.initiate({_id: \"rs0\",members: [   {_id: 0, host: \"mongo1\"},   {_id: 1, host: \"mongo2\"},   {_id: 2, host: \"mongo3\"} ]})"
+docker exec -it mongo1 bash
