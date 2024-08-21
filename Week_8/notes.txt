@@ -126,3 +126,15 @@ URL=http://$(kubectl -n "${NAMESPACE}" get svc ops-manager-svc-ext -o jsonpath='
 echo $URL
 
 kubectl -n "${NAMESPACE}" patch om ops-manager --type=merge -p "{\"spec\":{\"configuration\":{\"mms.centralUrl\":\"${URL}\"}}}"
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+http://34.174.249.90:8080
+isa.torres:~/dev/isamarietr/sc_summer_camp_2024/Week_8 (main) > kubectl -n "${NAMESPACE}" get pods
+NAME                                           READY   STATUS    RESTARTS   AGE
+mongodb-enterprise-operator-6d7d7c8985-zdrdf   1/1     Running   0          20m
+ops-manager-0                                  1/1     Running   0          4m26s
+ops-manager-backup-daemon-0                    1/1     Running   0          2m5s
+ops-manager-db-0                               3/3     Running   0          4m55s
+ops-manager-db-1                               3/3     Running   0          5m39s
+ops-manager-db-2                               3/3     Running   0          6m18s
