@@ -7,13 +7,6 @@
 BASE_VM_NAME="base_ubuntu"
 PASSWORD=`cat ./password.txt`
 
-## TODO: Create project, get Project Id and Api key
-## TODO: Get OM URL from previous script
-# ./3b_setup_agents.sh http://192.168.1.252 66a9464faf44f518147f13d9 66a99d213c73ea5a0879edcb587bed465a85ffd104bb30e169eb80a5
-LB=$1
-PROJECT_ID=$2
-API_KEY=$3
-
 VBoxManage clonevm "$BASE_VM_NAME" --name host1 --register
 VBoxManage startvm host1 --type headless
 echo "Waiting for the VM to boot..."
@@ -54,13 +47,6 @@ done
 echo "Done setting up first host!"
 
 HOST_MACHINES=("host2" "host3")
-
-## TODO: Create project, get Project Id and Api key
-## TODO: Get OM URL from previous script
-# ./setup_agents.sh http://192.168.1.252 66a9464faf44f518147f13d9 66a94670af44f518147f143eb5ef7a106704f1606167da9cd869d15b
-LB=$1
-PROJECT_ID=$2
-API_KEY=$3
 
 echo "===== Host Machines..."
 for NEW_VM in "${HOST_MACHINES[@]}"
