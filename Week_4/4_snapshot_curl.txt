@@ -1,0 +1,4 @@
+curl --user "wpqylllw:b24d23f5-d3e0-437e-91a1-4d86f205843d" --digest \
+ --header "Accept: application/json" \
+ --include \
+ --request GET "192.168.1.60:80/api/public/v1.0/groups/66c4ea1193b15c2dc3813514/clusters/66c61af91a85186721d3f2ba/snapshots?pretty=true"
