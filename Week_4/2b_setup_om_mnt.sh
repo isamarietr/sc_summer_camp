@@ -36,6 +36,8 @@ sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no ubuntu@$ip2 << EOF
     sudo apt install sshfs
     sudo mkdir -p /mnt/shared
     sudo sshfs -o allow_other,default_permissions ubuntu@$ip3:/home/ubuntu/shared /mnt/shared
+    # show the mounted filesystem
+    # sudo cat /etc/mtab
 EOF
 sleep 1
 
@@ -45,3 +47,4 @@ echo "OPS1"
 echo $ip1
 echo "OPS2"
 echo $ip2
+
