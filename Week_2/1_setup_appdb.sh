@@ -8,15 +8,15 @@ PASSWORD=`cat ./password.txt`
 
 MDB_MACHINES=("mdb1" "mdb2" "mdb3")
 
-# echo "Creating AppDB Machines..."
-# for NEW_VM in "${MDB_MACHINES[@]}"
-# do
-# VBoxManage clonevm "$BASE_VM_NAME" --name "$NEW_VM" --register
-# VBoxManage startvm "$NEW_VM" --type headless
-# done
+echo "Creating AppDB Machines..."
+for NEW_VM in "${MDB_MACHINES[@]}"
+do
+VBoxManage clonevm "$BASE_VM_NAME" --name "$NEW_VM" --register
+VBoxManage startvm "$NEW_VM" --type headless
+done
 
-# echo "Waiting for VMs to boot..."
-# sleep 30
+echo "Waiting for VMs to boot..."
+sleep 30
 
 for MDB_VM in "${MDB_MACHINES[@]}"
 do
