@@ -43,18 +43,20 @@ mdb_ip=$(VBoxManage guestproperty get $MDB_VM "/VirtualBox/GuestInfo/Net/0/V4/IP
 echo "Sending gen.key..."
 sshpass -p $PASSWORD scp -o StrictHostKeyChecking=no ./gen.key ubuntu@$mdb_ip:~/gen.key
 
-MONGO_URI="mongodb://192.168.1.225:27017,192.168.1.226:27017,192.168.1.227:27017" 
+MONGO_URI="mongodb://192.168.1.45:27017,192.168.1.46:27017,192.168.1.47:27017" 
 
 echo "Installing Ops Manager..."
 sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no ubuntu@$mdb_ip << EOF
 
+    export DEBIAN_FRONTEND="noninteractive"
+    sudo apt-get update
     sudo apt-get install -y gnupg curl
-    sudo systemctl enable --now ssh
+    #sudo systemctl enable --now ssh
 
     # get installer
-    curl -OL https://downloads.mongodb.com/on-prem-mms/deb/mongodb-mms-7.0.9.500.20240716T1711Z.amd64.deb
+    curl -OL https://downloads.mongodb.com/on-prem-mms/deb/mongodb-mms-7.0.10.500.20240731T2147Z.amd64.deb
 
-    sudo dpkg --install mongodb-mms-7.0.9.500.20240716T1711Z.amd64.deb
+    sudo dpkg --install mongodb-mms-7.0.10.500.20240731T2147Z.amd64.deb
 
     sudo mv ~/gen.key /etc/mongodb-mms/gen.key
     sudo chown -R mongodb:mongodb /etc/mongodb-mms/gen.key
@@ -65,8 +67,11 @@ sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no ubuntu@$mdb_ip << EOF
     sudo ufw allow 27017
     sudo ufw allow 8080
     sudo ufw allow 22
-
+    sudo ufw enable
+    echo " y" | sudo ufw enable
+    
     sudo systemctl start mongodb-mms
+    sudo systemctl status mongodb-mms
     sudo systemctl enable mongodb-mms
 
     # TODO: copy /etc/mongodb-mms/ gen.key

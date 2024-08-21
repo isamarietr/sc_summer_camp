@@ -8,12 +8,15 @@ PASSWORD=`cat ./password.txt`
 
 MDB_MACHINES=("mdb1" "mdb2" "mdb3")
 
-echo "Creating AppDB Machines..."
-for NEW_VM in "${MDB_MACHINES[@]}"
-do
-VBoxManage clonevm "$BASE_VM_NAME" --name "$NEW_VM" --register
-VBoxManage startvm "$NEW_VM" --type headless
-done
+# echo "Creating AppDB Machines..."
+# for NEW_VM in "${MDB_MACHINES[@]}"
+# do
+# VBoxManage clonevm "$BASE_VM_NAME" --name "$NEW_VM" --register
+# VBoxManage startvm "$NEW_VM" --type headless
+# done
+
+# echo "Waiting for VMs to boot..."
+# sleep 30
 
 for MDB_VM in "${MDB_MACHINES[@]}"
 do
@@ -27,16 +30,22 @@ sshpass -p $PASSWORD scp -o StrictHostKeyChecking=no ./mongod.conf ubuntu@$mdb_i
 echo "Installing MongoDB..."
 sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no ubuntu@$mdb_ip << EOF
 
+    export DEBIAN_FRONTEND="noninteractive"
     # get mongodb EA binaries and install
+    sudo apt-get update 
     sudo apt-get install -y gnupg curl
 
-    curl -fsSL https://pgp.mongodb.com/server-7.0.asc | \
-    sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+    curl -fsSL https://pgp.mongodb.com/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
 
     echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.com/apt/ubuntu jammy/mongodb-enterprise/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise-7.0.list
-
+    
     sudo apt-get update 
-    sudo apt-get install -y mongodb-database-tools mongodb-mongosh  mongodb-enterprise 
+    sudo apt-get install -y mongodb-enterprise 
+
+    wget -qO- https://www.mongodb.org/static/pgp/server-7.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-7.0.asc
+    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+    sudo apt-get update 
+    sudo apt-get install mongodb-database-tools mongodb-mongosh 
 
     sudo chown ubuntu /etc/mongod.conf
     sudo cp ~/mongod.conf /etc/mongod.conf
@@ -51,6 +60,7 @@ sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no ubuntu@$mdb_ip << EOF
 
     # setup firewall
     sudo ufw allow 27017
+    echo " y" | sudo ufw enable
     
     #start mongod
     sudo systemctl start mongod
@@ -67,10 +77,11 @@ ip3=$(VBoxManage guestproperty get mdb3 "/VirtualBox/GuestInfo/Net/0/V4/IP" | aw
 
 echo "Initiating RS..."
 sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no ubuntu@$ip1 << EOF
-    echo " IPs.."
+    echo "IPs.."
     echo $ip1
     echo $ip2
     echo $ip3
+    echo mongosh $ip1 --eval  "rs.initiate({_id: 'rs0', members: [{ _id: 0, host: '$ip1:27017' },{ _id: 1, host: '$ip2:27017' },{ _id: 2, host: '$ip3:27017' }]})" 
     mongosh $ip1 --eval  "rs.initiate({_id: 'rs0', members: [{ _id: 0, host: '$ip1:27017' },{ _id: 1, host: '$ip2:27017' },{ _id: 2, host: '$ip3:27017' }]})" 
 EOF
 
