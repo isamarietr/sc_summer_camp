@@ -1,0 +1,128 @@
+# Install Google Cloud SDK
+brew install google-cloud-sdk
+gcloud init
+# Use gcloud to install the plugin
+gcloud components install gke-gcloud-auth-plugin
+# Install Helm via Homebrew
+brew install helm
+# Install kubectx via Homebrew
+brew install kubectx
+# Install kubectl via Homebrew
+brew install kubectl
+
+gcloud version
+gke-gcloud-auth-plugin --version
+helm version
+kubectl version --client
+kubectx --version
+ brew reinstall kubernetes-cli
+kubectl version --client
+
+# use @gcp.corp.mongodb.com login
+
+================================================================
+
+CLUSTER_NAME=master-operator
+ZONE=us-south1-a
+K8S_VERSION=1.29
+MACHINE=n2-standard-2
+gcloud container clusters create "${CLUSTER_NAME}" \
+  --zone "${ZONE}" \
+  --machine-type "${MACHINE}" --cluster-version="${K8S_VERSION}" \
+  --disk-type=pd-standard --num-nodes 4
+
+gcloud container clusters get-credentials "${CLUSTER_NAME}" \
+  --zone "${ZONE}"
+
+gcloud container clusters list
+
+kubectx
+
+kubectx $(kubectx | grep "master-operator" | awk '{print $1}')
+
+helm repo add mongodb https://mongodb.github.io/helm-charts
+
+NAMESPACE=mongodb-operator
+kubectl create ns "${NAMESPACE}"
+
+HELM_CHART_VERSION=1.16.3
+helm install enterprise-operator mongodb/enterprise-operator \
+  --namespace "${NAMESPACE}" \
+  --version="${HELM_CHART_VERSION}" \
+  --set operator.watchNamespace="${NAMESPACE}"
+
+kubectl get ns
+
+kubectl get po -n "${NAMESPACE}"
+
+helm list --namespace "${NAMESPACE}"
+
+helm get manifest enterprise-operator --namespace "${NAMESPACE}"
+
+kubectl -n "${NAMESPACE}" get crd | grep -E '^(mongo|ops)'
+
+kubectl -n "${NAMESPACE}" get sa | grep -E '^(mongo)'
+
+kubectl describe deployments mongodb-enterprise-operator -n \
+  "${NAMESPACE}"
+
+kubectl describe deploy mongodb-enterprise-operator -n "${NAMESPACE}" | grep WATCH
+
+================================================================
+
+gcloud container clusters list
+
+kubectx
+
+kubectx $(kubectx | grep "master-operator" | awk '{print $1}')
+
+kubectl get po -n "${NAMESPACE}"
+
+kubectl -n "${NAMESPACE}" create secret generic om-admin-secret \
+  --from-literal=Username="opsmanager@example.com" \
+  --from-literal=Password="p@ssword123" \
+  --from-literal=FirstName="Ops" \
+  --from-literal=LastName="Manager"
+
+OM_VERSION=6.0.5
+APPDB_VERSION=5.0.5-ent
+kubectl apply -f - <<EOF
+apiVersion: mongodb.com/v1
+kind: MongoDBOpsManager
+metadata:
+  name: ops-manager
+  namespace: "${NAMESPACE}"
+spec:
+  version: "${OM_VERSION}"
+  # the name of the secret containing admin user credentials.
+  adminCredentials: om-admin-secret
+  externalConnectivity:
+    type: LoadBalancer
+  configuration:
+    mms.ignoreInitialUiSetup: "true"
+    automation.versions.source: mongodb
+    mms.adminEmailAddr: support@example.com
+    mms.fromEmailAddr: support@example.com
+    mms.replyToEmailAddr: support@example.com
+    mms.mail.hostname: example.com
+    mms.mail.port: "465"
+    mms.mail.ssl: "false"
+    mms.mail.transport: smtp
+  # the Replica Set backing Ops Manager.
+  applicationDatabase:
+    members: 3
+    version: "${APPDB_VERSION}"
+EOF
+
+kubectl -n "${NAMESPACE}" get pods
+
+kubectl -n "${NAMESPACE}" get pvc
+
+kubectl -n "${NAMESPACE}" get sts
+
+kubectl -n "${NAMESPACE}" get svc
+
+URL=http://$(kubectl -n "${NAMESPACE}" get svc ops-manager-svc-ext -o jsonpath='{.status.loadBalancer.ingress[0].ip}:{.spec.ports[0].port}')
+echo $URL
+
+kubectl -n "${NAMESPACE}" patch om ops-manager --type=merge -p "{\"spec\":{\"configuration\":{\"mms.centralUrl\":\"${URL}\"}}}"
