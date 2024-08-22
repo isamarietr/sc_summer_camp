@@ -12,7 +12,7 @@ VBoxManage startvm host1 --type headless
 echo "Waiting for the VM to boot..."
 sleep 45
 
-ip1=$(VBoxManage guestproperty get host2 "/VirtualBox/GuestInfo/Net/0/V4/IP" | awk '{ print $2 }')
+ip1=$(VBoxManage guestproperty get host1 "/VirtualBox/GuestInfo/Net/0/V4/IP" | awk '{ print $2 }')
 
 echo "Installing Agents..."
 sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no ubuntu@$ip1 << EOF
