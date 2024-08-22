@@ -48,10 +48,10 @@ echo "Done setting up first host!"
 
 HOST_MACHINES=("host2" "host3")
 
-echo "===== Host Machines..."
+echo "===== Clone host1..."
 for NEW_VM in "${HOST_MACHINES[@]}"
 do
-VBoxManage clonevm "$BASE_VM_NAME" --name "$NEW_VM" --register
+VBoxManage clonevm host1 --name "$NEW_VM" --register
 VBoxManage startvm "$NEW_VM" --type headless
 done
 echo "Waiting for the VMs to boot..."
